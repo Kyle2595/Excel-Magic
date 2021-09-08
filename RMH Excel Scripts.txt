@@ -1,0 +1,76 @@
+
+Sub FindAndReplace()
+
+Dim sht As Worksheet
+Dim fndList As Integer
+Dim rplcList As Integer
+Dim tbl As ListObject
+Dim myArray As Variant
+Dim ReplaceCount As Long
+
+  Set sht = Worksheets("Contacts")
+
+'Create variable to point to your table
+  Set tbl = Worksheets("Sheet1").ListObjects("email")
+
+'Create an Array out of the Table's Data
+  Set TempArray = tbl.DataBodyRange
+  myArray = Application.Transpose(TempArray)
+
+'Designate Columns for Find/Replace data
+  fndList = 1
+  rplcList = 2
+
+'Loop through each item in Array lists
+  For x = LBound(myArray, 1) To UBound(myArray, 2)
+
+    sht.Range("N3:N26055").Replace What:=myArray(fndList, x), Replacement:=myArray(rplcList, x), _
+    LookAt:=xlWhole, SearchOrder:=xlByRows, MatchCase:=False, _
+    SearchFormat:=False, ReplaceFormat:=False
+
+  Next x
+
+  MsgBox "I have completed my search and made replacements"
+
+End Sub
+
+
+
+
+
+Sub RemoveDuplicates()
+
+Dim sht As Worksheet
+Dim i As Long
+Dim j As Long
+Dim last_row As Long
+
+Set sht = Worksheets("Contacts Duplicates Removed")
+last_row = sht.Cells(Rows.Count, 5).End(xlUp).Row
+For i = 3 To last_row 'Start at the 3rd row, then loop
+'For i = 3 To 100
+iLoop:
+    If sht.Cells(i, 5).Value = sht.Cells(i + 1, 5).Value Then
+        For j = 1 To Columns.Count  'Start at the first column, then loop
+            If sht.Cells(i, j).Value = sht.Cells(i + 1, j).Value Then
+                'If the cells are equal, then do nothing.
+            Else
+                'If the cells are NOT equal, then combine the values with "||" in the middle
+                If sht.Cells(i, j).Value = "" Then 'Ignore blank cells in first row
+                    sht.Cells(i, j).Value = sht.Cells(i + 1, j).Value
+                ElseIf sht.Cells(i + 1, j).Value = "" Then
+                    'Ignore blank cells in second row (do nothing)
+                Else
+                    sht.Cells(i, j).Value = sht.Cells(i, j).Value & " || " & sht.Cells(i + 1, j).Value
+                End If
+            End If
+        Next j
+        'Delete the duplicate row and run the code again WITHOUT incrimenting i
+        Rows(i + 1).EntireRow.Delete
+        GoTo iLoop
+    End If
+    Debug.Print i
+Next i
+
+Debug.Print "END"
+End Sub
