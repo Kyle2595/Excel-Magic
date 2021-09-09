@@ -1,3 +1,14 @@
+Sub UpperCase()
+Dim rng As Range
+Set rng = Selection
+
+For Each Cell In rng
+    Cell.Value = UCase(Cell)
+Next Cell
+
+Debug.Print "End"
+End Sub
+
 
 Sub FindAndReplace()
 
@@ -5,38 +16,31 @@ Dim sht As Worksheet
 Dim fndList As Integer
 Dim rplcList As Integer
 Dim tbl As ListObject
-Dim myArray As Variant
+Dim MyArray As Variant
 Dim ReplaceCount As Long
 
-  Set sht = Worksheets("Contacts")
+Set sht = Worksheets("Contacts")
 
 'Create variable to point to your table
-  Set tbl = Worksheets("Sheet1").ListObjects("email")
+Set tbl = Worksheets("Sheet1").ListObjects("email")
 
 'Create an Array out of the Table's Data
-  Set TempArray = tbl.DataBodyRange
-  myArray = Application.Transpose(TempArray)
+Set TempArray = tbl.DataBodyRange
+MyArray = Application.Transpose(TempArray)
 
 'Designate Columns for Find/Replace data
-  fndList = 1
-  rplcList = 2
+fndList = 1
+rplcList = 2
 
 'Loop through each item in Array lists
-  For x = LBound(myArray, 1) To UBound(myArray, 2)
-
-    sht.Range("N3:N26055").Replace What:=myArray(fndList, x), Replacement:=myArray(rplcList, x), _
+For x = LBound(MyArray, 1) To UBound(MyArray, 2)
+    sht.Range("N3:N26055").Replace What:=MyArray(fndList, x), Replacement:=MyArray(rplcList, x), _
     LookAt:=xlWhole, SearchOrder:=xlByRows, MatchCase:=False, _
     SearchFormat:=False, ReplaceFormat:=False
+Next x
 
-  Next x
-
-  MsgBox "I have completed my search and made replacements"
-
+Debug.Print "End"
 End Sub
-
-
-
-
 
 Function ArrayRemoveDups(initialArray As Variant) As Variant
 Dim nFirst As Long
@@ -75,9 +79,6 @@ ArrayRemoveDups = arrTemp
 
 End Function
 
-
-
-
 Sub RowsRemoveDuplicate()
 
 Dim sht As Worksheet
@@ -90,15 +91,13 @@ Dim dupArray() As String
 Dim sanitizedArray() As String
 Dim sanitizedString As String
 
-Set sht = Worksheets("Duplicates Removed (2)")
-'lastRow = sht.Cells(Rows.Count, 1).End(xlUp).Row
+Set sht = Worksheets("Duplicates Removed")
+lastRow = sht.Cells(Rows.Count, 1).End(xlUp).Row
 lastCol = sht.Cells(1, Columns.Count).End(xlToLeft).Column
-
-lastRow = 4
 
 For i = lastRow To 3 Step -1   'Needs to loop in reverse because otherwise deleting the duplicate rows will mess with the row count
 iLoop:
-    If sht.Cells(i, 5).Value = sht.Cells(i + 1, 5).Value Then
+    If sht.Cells(i, 5).Value = sht.Cells(i - 1, 5).Value Then
         For j = 1 To lastCol  'Start at the first column, then loop
             If sht.Cells(i, j).Value = sht.Cells(i - 1, j).Value Then
                 'If the cells are equal, then do nothing.
@@ -107,7 +106,7 @@ iLoop:
                 If sht.Cells(i, j).Value = "" Then
                     'Ignore blank cells in first row
                     sht.Cells(i, j).Value = sht.Cells(i - 1, j).Value
-                ElseIf sht.Cells(i + 1, j).Value = "" Then
+                ElseIf sht.Cells(i - 1, j).Value = "" Then
                     'Ignore blank cells in second row (do nothing)
                 Else
                     sht.Cells(i, j).Value = sht.Cells(i, j).Value & " || " & sht.Cells(i - 1, j).Value
