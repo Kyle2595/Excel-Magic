@@ -38,39 +38,99 @@ End Sub
 
 
 
-Sub RemoveDuplicates()
+Function ArrayRemoveDups(initialArray As Variant) As Variant
+Dim nFirst As Long
+Dim nLast As Long
+Dim i As Long
+Dim item As String
+
+Dim arrTemp() As String
+Dim Coll As New Collection
+
+nFirst = LBound(initialArray)
+nLast = UBound(initialArray)
+ReDim arrTemp(nFirst To nLast)
+
+'Convert Array to String
+For i = nFirst To nLast
+    arrTemp(i) = CStr(initialArray(i))
+Next i
+
+'Populate Temporary Collection
+On Error Resume Next
+For i = nFirst To nLast
+    Coll.Add arrTemp(i), arrTemp(i)
+Next i
+Err.Clear
+On Error GoTo 0
+
+nLast = Coll.Count + nFirst - 1
+ReDim arrTemp(nFirst To nLast)
+
+For i = nFirst To nLast
+    arrTemp(i) = Coll(i - nFirst + 1)
+Next i
+
+ArrayRemoveDups = arrTemp
+
+End Function
+
+
+
+
+Sub RowsRemoveDuplicate()
 
 Dim sht As Worksheet
 Dim i As Long
 Dim j As Long
-Dim last_row As Long
+Dim k As Long
+Dim lastRow As Long
+Dim lastCol As Long
+Dim dupArray() As String
+Dim sanitizedArray() As String
+Dim sanitizedString As String
 
-Set sht = Worksheets("Contacts Duplicates Removed")
-last_row = sht.Cells(Rows.Count, 5).End(xlUp).Row
-For i = 3 To last_row 'Start at the 3rd row, then loop
-'For i = 3 To 100
+Set sht = Worksheets("Duplicates Removed (2)")
+'lastRow = sht.Cells(Rows.Count, 1).End(xlUp).Row
+lastCol = sht.Cells(1, Columns.Count).End(xlToLeft).Column
+
+lastRow = 4
+
+For i = lastRow To 3 Step -1   'Needs to loop in reverse because otherwise deleting the duplicate rows will mess with the row count
 iLoop:
     If sht.Cells(i, 5).Value = sht.Cells(i + 1, 5).Value Then
-        For j = 1 To Columns.Count  'Start at the first column, then loop
-            If sht.Cells(i, j).Value = sht.Cells(i + 1, j).Value Then
+        For j = 1 To lastCol  'Start at the first column, then loop
+            If sht.Cells(i, j).Value = sht.Cells(i - 1, j).Value Then
                 'If the cells are equal, then do nothing.
             Else
                 'If the cells are NOT equal, then combine the values with "||" in the middle
-                If sht.Cells(i, j).Value = "" Then 'Ignore blank cells in first row
-                    sht.Cells(i, j).Value = sht.Cells(i + 1, j).Value
+                If sht.Cells(i, j).Value = "" Then
+                    'Ignore blank cells in first row
+                    sht.Cells(i, j).Value = sht.Cells(i - 1, j).Value
                 ElseIf sht.Cells(i + 1, j).Value = "" Then
                     'Ignore blank cells in second row (do nothing)
                 Else
-                    sht.Cells(i, j).Value = sht.Cells(i, j).Value & " || " & sht.Cells(i + 1, j).Value
+                    sht.Cells(i, j).Value = sht.Cells(i, j).Value & " || " & sht.Cells(i - 1, j).Value
                 End If
             End If
         Next j
         'Delete the duplicate row and run the code again WITHOUT incrimenting i
-        Rows(i + 1).EntireRow.Delete
+        Rows(i - 1).EntireRow.Delete
         GoTo iLoop
     End If
-    Debug.Print i
+    'Below is to remove the dublicate values in each cell
+    For j = 1 To lastCol
+        dupArray = Split(sht.Cells(i, j).Value, " || ")
+        If UBound(dupArray) - LBound(dupArray) + 1 > 1 Then
+            sanitizedArray = ArrayRemoveDups(dupArray)
+            sanitizedString = sanitizedArray(0)
+            For k = 1 To UBound(sanitizedArray)
+                sanitizedString = sanitizedString & " || " & sanitizedArray(k)
+            Next k
+            sht.Cells(i, j).Value = sanitizedString
+            'Debug.Print sanitizedString
+        End If
+    Next j
 Next i
-
 Debug.Print "END"
 End Sub
